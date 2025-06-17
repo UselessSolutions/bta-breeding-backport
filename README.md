@@ -12,10 +12,10 @@ This mod backports the more modern breeding and mob following mechanics into BTA
 - Fed animal or children of animals no longer despawn
 
 ## Foods for animals
-- Sheep - Wheat
+- Sheep - Flowers and Tall Grass
 - Cows - Wheat
-- Pigs - Pumpkins
+- Pigs - Mushrooms
 - Chickens - Seeds, Pumpkin Seeds
 - Wolves - Meat
-- Default - Wheat, any mod that adds new animals will have their fed item default to wheat
+- Default - The same as the animal's follow item, if set.
 
