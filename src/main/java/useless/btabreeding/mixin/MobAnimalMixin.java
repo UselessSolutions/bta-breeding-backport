@@ -7,9 +7,10 @@ import net.minecraft.core.entity.animal.Creature;
 import net.minecraft.core.entity.animal.MobAnimal;
 import net.minecraft.core.entity.player.Player;
 import net.minecraft.core.item.ItemStack;
-import net.minecraft.core.item.Items;
 import net.minecraft.core.world.World;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Overwrite;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -20,8 +21,11 @@ import useless.btabreeding.IBreeding;
 import java.util.List;
 
 @Mixin(value = MobAnimal.class, remap = false)
-public class MobAnimalMixin extends MobPathfinder implements Creature, IBreeding {
-	public MobAnimalMixin(World world) {
+public abstract class MobAnimalMixin extends MobPathfinder implements Creature, IBreeding {
+	@Shadow
+	public abstract boolean isFavouriteItem(ItemStack itemStack);
+
+	public MobAnimalMixin(final World world) {
 		super(world);
 	}
 
@@ -38,60 +42,60 @@ public class MobAnimalMixin extends MobPathfinder implements Creature, IBreeding
 
 	@Override
 	public int btabreeding$getBreedingTimer() {
-		return breedingTimer;
+		return this.breedingTimer;
 	}
 
 	@Override
 	public int btabreeding$getFedTimer() {
-		return fedTimer;
+		return this.fedTimer;
 	}
 
 	@Override
 	public int btabreeding$getChildTimer() {
-		return childhoodTimer;
+		return this.childhoodTimer;
 	}
 
 	@Override
-	public void btabreeding$setBreedingTimer(int value) {
+	public void btabreeding$setBreedingTimer(final int value) {
 		this.breedingTimer = value;
 	}
 
 	@Override
-	public void btabreeding$setFedTimer(int value) {
+	public void btabreeding$setFedTimer(final int value) {
 		this.fedTimer = value;
 	}
 
 	@Override
-	public void btabreeding$setChildTimer(int value) {
+	public void btabreeding$setChildTimer(final int value) {
 		this.childhoodTimer = value;
 	}
 
 	@Override
 	public boolean btabreeding$isBreedable() {
-		return breedingTimer <= 0 && !btabreeding$isBaby();
+		return this.breedingTimer <= 0 && !btabreeding$isBaby();
 	}
 
 	@Override
 	public boolean btabreeding$isFed() {
-		return fedTimer > 0;
+		return this.fedTimer > 0;
 	}
 
 	@Override
-	public boolean btabreeding$isFoodItem(ItemStack stack) {
-		return stack != null && stack.getItem() == Items.WHEAT;
+	public boolean btabreeding$isFoodItem(final ItemStack stack) {
+		return isFavouriteItem(stack);
 	}
 
 	@Override
-	public void btabreeding$spawnBaby(IBreeding partner) {
-		if (!world.isClientSide) {
+	public void btabreeding$spawnBaby(final IBreeding partner) {
+		if (!this.world.isClientSide) {
 			// Spawn entity
-			MobAnimal entity = (MobAnimal) BtaBreeding.createEntity(this.getClass(), world);
-			entity.moveTo(x, y, z, 0, 0.0f);
+			final MobAnimal entity = (MobAnimal) BtaBreeding.createEntity(this.getClass(), this.world);
+			entity.moveTo(this.x, this.y, this.z, 0, 0.0f);
 			entity.spawnInit();
 
 			((IBreeding) entity).btabreeding$setChildTimer(20 * 60 * 5);
 
-			world.entityJoinedWorld(entity);
+			this.world.entityJoinedWorld(entity);
 			this.btabreeding$setFedTimer(0);
 			partner.btabreeding$setFedTimer(0);
 			this.btabreeding$setBreedingTimer(20*100);
@@ -106,27 +110,27 @@ public class MobAnimalMixin extends MobPathfinder implements Creature, IBreeding
 		return btabreeding$getChildTimer() > 0;
 	}
 	@Override
-	public void btabreeding$setPassiveTarget(Entity entity){
+	public void btabreeding$setPassiveTarget(final Entity entity){
 		this.passiveTarget = entity;
 		if (entity == null){
-			pathToEntity = null;
+			this.pathToEntity = null;
 		}
 	}
 	@Override
 	public Entity btabreeding$getPassiveTarget() {
-		return passiveTarget;
+		return this.passiveTarget;
 	}
 
 	@Override
-	public boolean interact(Player entityplayer) {
-		ItemStack item = entityplayer.inventory.getCurrentItem();
-		boolean flag = super.interact(entityplayer);
+	public boolean interact(final Player entityplayer) {
+		final ItemStack item = entityplayer.inventory.getCurrentItem();
+		final boolean flag = super.interact(entityplayer);
 		if (item != null && btabreeding$isFoodItem(item) && (btabreeding$isBreedable() || btabreeding$isBaby()) && item.consumeItem(entityplayer)){
 			if (this.btabreeding$isBaby()){
 				this.btabreeding$setChildTimer((int) (btabreeding$getChildTimer() * 0.75f));
-				double d = this.random.nextGaussian() * 0.02;
-				double d1 = this.random.nextGaussian() * 0.02;
-				double d2 = this.random.nextGaussian() * 0.02;
+				final double d = this.random.nextGaussian() * 0.02;
+				final double d1 = this.random.nextGaussian() * 0.02;
+				final double d2 = this.random.nextGaussian() * 0.02;
 				this.world.spawnParticle(
 					"soulflame",
 					this.x + (double)(this.random.nextFloat() * this.bbWidth * 2.0F) - (double)this.bbWidth,
@@ -139,7 +143,7 @@ public class MobAnimalMixin extends MobPathfinder implements Creature, IBreeding
 				);
 			} else {
 				this.btabreeding$setFedTimer(20 * 15);
-				isPersistent = true;
+				this.isPersistent = true;
 			}
 			return true;
 		}
@@ -148,19 +152,19 @@ public class MobAnimalMixin extends MobPathfinder implements Creature, IBreeding
 
 	@Override
 	public void onLivingUpdate() {
-		if (breedingTimer > 0){
-			breedingTimer--;
+		if (this.breedingTimer > 0){
+			this.breedingTimer--;
 		}
 		if (btabreeding$getChildTimer() > 0){
-			isPersistent = true;
+			this.isPersistent = true;
 			btabreeding$setChildTimer(btabreeding$getChildTimer()-1);
 		}
 		if (btabreeding$isFed()){
-			fedTimer--;
+			this.fedTimer--;
 		}
 		List<Entity> list = this.world.getEntitiesWithinAABBExcludingEntity(this, this.bb.expand(0.2F, 0.0, 0.2F).move(-0.1F, -0.1F, -0.1F));
 		if (list != null && !list.isEmpty() && !isMovementCeased()) {
-            for (Entity entity : list) {
+            for (final Entity entity : list) {
                 if (entity instanceof IBreeding &&
 					entity.getClass().isInstance(this) &&
 					this.btabreeding$isFed() &&
@@ -174,10 +178,10 @@ public class MobAnimalMixin extends MobPathfinder implements Creature, IBreeding
             }
 		}
 
-		if (tickCount % 40 == 0 && !isMovementCeased()){
+		if (this.tickCount % 40 == 0 && !isMovementCeased()){
 			list = this.world.getEntitiesWithinAABBExcludingEntity(this, this.bb.expand(10F, 10F, 10F).move(-5F, -5F, -5F));
 			if (btabreeding$isBaby() && btabreeding$getPassiveTarget() == null){
-				for (Entity entity : list) {
+				for (final Entity entity : list) {
 					if (entity instanceof IBreeding &&
 						entity.getClass().isInstance(this) &&
 					!((IBreeding) entity).btabreeding$isBaby()) {
@@ -188,7 +192,7 @@ public class MobAnimalMixin extends MobPathfinder implements Creature, IBreeding
 			}
 			else if (btabreeding$isFed()){
 				this.btabreeding$setPassiveTarget(null);
-				for (Entity entity : list) {
+				for (final Entity entity : list) {
 					if (entity instanceof IBreeding &&
 						entity.getClass().isInstance(this) &&
 						this.btabreeding$isFed() &&
@@ -202,7 +206,7 @@ public class MobAnimalMixin extends MobPathfinder implements Creature, IBreeding
 
 			} else if (btabreeding$isBreedable()) {
 				this.btabreeding$setPassiveTarget(null);
-				for (Entity entity : list) {
+				for (final Entity entity : list) {
 					if (entity instanceof Player && btabreeding$isFoodItem(((Player) entity).getHeldItem())) {
 						this.btabreeding$setPassiveTarget(entity);
 						break;
@@ -214,10 +218,10 @@ public class MobAnimalMixin extends MobPathfinder implements Creature, IBreeding
 
 		super.onLivingUpdate();
 
-		if (btabreeding$isFed() && tickCount % 4 == 0){
-			double d = this.random.nextGaussian() * 0.02;
-			double d1 = this.random.nextGaussian() * 0.02;
-			double d2 = this.random.nextGaussian() * 0.02;
+		if (btabreeding$isFed() && this.tickCount % 4 == 0){
+			final double d = this.random.nextGaussian() * 0.02;
+			final double d1 = this.random.nextGaussian() * 0.02;
+			final double d2 = this.random.nextGaussian() * 0.02;
 			this.world.spawnParticle(
 					"heart",
 					this.x + (double)(this.random.nextFloat() * this.bbWidth * 2.0F) - (double)this.bbWidth,
@@ -230,8 +234,12 @@ public class MobAnimalMixin extends MobPathfinder implements Creature, IBreeding
 				);
 		}
 	}
-	@Override
-	protected void updateAI() {
+	/**
+	 * @author Useless
+	 * @reason Replacing vanilla follow logic with new logic
+	 */
+	@Overwrite
+	public void updateAI() {
 		if (passiveTarget == null && getCurrentTarget() == null){
 			pathToEntity = null;
 		}
@@ -246,15 +254,15 @@ public class MobAnimalMixin extends MobPathfinder implements Creature, IBreeding
 		super.updateAI();
 	}
 	@Inject(method = "addAdditionalSaveData(Lcom/mojang/nbt/tags/CompoundTag;)V", at = @At("TAIL"))
-	private void saveData(CompoundTag tag, CallbackInfo ci){
-		tag.putInt("breeding$breedtime", breedingTimer);
-		tag.putInt("breeding$fedtime", fedTimer);
-		tag.putInt("breeding$childtime", childhoodTimer);
-		tag.putBoolean("breeding$persistent", isPersistent);
+	public void saveData(final CompoundTag tag, final CallbackInfo ci){
+		tag.putInt("breeding$breedtime", this.breedingTimer);
+		tag.putInt("breeding$fedtime", this.fedTimer);
+		tag.putInt("breeding$childtime", this.childhoodTimer);
+		tag.putBoolean("breeding$persistent", this.isPersistent);
 	}
 
 	@Inject(method = "readAdditionalSaveData(Lcom/mojang/nbt/tags/CompoundTag;)V", at = @At("TAIL"))
-	private void loadData(CompoundTag tag, CallbackInfo ci){
+	public void loadData(final CompoundTag tag, final CallbackInfo ci){
 		this.breedingTimer = tag.getInteger("breeding$breedtime");
 		this.fedTimer =	tag.getInteger("breeding$fedtime");
 		this.childhoodTimer = tag.getInteger("breeding$childtime");
@@ -262,6 +270,6 @@ public class MobAnimalMixin extends MobPathfinder implements Creature, IBreeding
 	}
 	@Override
 	public boolean canDespawn(){
-		return super.canDespawn() && !isPersistent;
+		return super.canDespawn() && !this.isPersistent;
 	}
 }

@@ -18,19 +18,15 @@ public abstract class MobWolfMixin extends MobAnimalMixin {
 	@Shadow
 	public abstract UUID getWolfOwner();
 
-	public MobWolfMixin(World world) {
+	public MobWolfMixin(final World world) {
 		super(world);
 	}
 	@Override
-	public boolean btabreeding$isFoodItem(ItemStack stack) {
-		return stack != null && stack.getItem() instanceof ItemFood && ((ItemFood) stack.getItem()).getIsWolfsFavoriteMeat();
-	}
-	@Override
-	public void btabreeding$spawnBaby(IBreeding partner) {
-		if (!world.isClientSide) {
+	public void btabreeding$spawnBaby(final IBreeding partner) {
+		if (!this.world.isClientSide) {
 			// Spawn entity
-			MobAnimal entity = (MobAnimal) BtaBreeding.createEntity(this.getClass(), world);
-			entity.moveTo(x, y, z, 0, 0.0f);
+			final MobAnimal entity = (MobAnimal) BtaBreeding.createEntity(this.getClass(), this.world);
+			entity.moveTo(this.x, this.y, this.z, 0, 0.0f);
 			entity.spawnInit();
 
 			((MobWolf)entity).setWolfOwner(this.getWolfOwner());
@@ -38,7 +34,7 @@ public abstract class MobWolfMixin extends MobAnimalMixin {
 
 			((IBreeding) entity).btabreeding$setChildTimer(20 * 60 * 5);
 
-			world.entityJoinedWorld(entity);
+			this.world.entityJoinedWorld(entity);
 			this.btabreeding$setFedTimer(0);
 			partner.btabreeding$setFedTimer(0);
 			this.btabreeding$setBreedingTimer(20*100);

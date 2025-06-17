@@ -15,22 +15,22 @@ public abstract class MobSheepMixin extends MobAnimalMixin {
 	@Shadow
 	public abstract DyeColor getFleeceColor();
 
-	public MobSheepMixin(World world) {
+	public MobSheepMixin(final World world) {
 		super(world);
 	}
 	@Override
-	public void btabreeding$spawnBaby(IBreeding partner) {
-		if (!world.isClientSide) {
+	public void btabreeding$spawnBaby(final IBreeding partner) {
+		if (!this.world.isClientSide) {
 			// Spawn entity
-			MobAnimal entity = (MobAnimal) BtaBreeding.createEntity(this.getClass(), world);
-			entity.moveTo(x, y, z, 0, 0.0f);
+			final MobAnimal entity = (MobAnimal) BtaBreeding.createEntity(this.getClass(), this.world);
+			entity.moveTo(this.x, this.y, this.z, 0, 0.0f);
 			entity.spawnInit();
 
-			((MobSheep)entity).setFleeceColor(random.nextInt(2) == 0 ? this.getFleeceColor() : ((MobSheep)partner).getFleeceColor());
+			((MobSheep)entity).setFleeceColor(this.random.nextInt(2) == 0 ? this.getFleeceColor() : ((MobSheep)partner).getFleeceColor());
 
 			((IBreeding) entity).btabreeding$setChildTimer(20 * 60 * 5);
 
-			world.entityJoinedWorld(entity);
+			this.world.entityJoinedWorld(entity);
 			this.btabreeding$setFedTimer(0);
 			partner.btabreeding$setFedTimer(0);
 			this.btabreeding$setBreedingTimer(20*100);

@@ -19,7 +19,7 @@ public class BtaBreeding implements ModInitializer {
 		try {
 			return entityClass.getConstructor(World.class).newInstance(world);
 		} catch (Exception e) {
-			throw new CommandError("Could not create Entity!");
+			throw new RuntimeException("Could not create Entity!");
 		}
 	}
 }
