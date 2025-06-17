@@ -6,7 +6,6 @@ This mod backports the more modern breeding and mob following mechanics into BTA
 
 ## Features
 - Can now feed animals with food
-- Animals follow you if you are holding food
 - Fed animals can produce children
 - Feeding children makes them grow up faster
 - Fed animal or children of animals no longer despawn
